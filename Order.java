@@ -4,9 +4,14 @@ import java.util.ArrayList;
 
 public class Order {
     private int orderId;
-    private ArrayList<OrderItem> items;
+    private ArrayList<OrderItem> items = new ArrayList<>();
     private OrderStatus status;
-    private Customer customer;
+    // private Customer customer;
+
+    public Order() {
+        this.status = OrderStatus.PLACED;
+        this.items = new ArrayList<>();
+    }
 
     public OrderStatus getStatus() {
         return status;
@@ -78,7 +83,9 @@ public class Order {
         return subtotal;
     }
 
-
+    public ArrayList<OrderItem> getItems() {
+    return items;
+}
 
 
 

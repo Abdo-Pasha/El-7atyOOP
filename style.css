@@ -1,0 +1,16 @@
+.category-button {
+    -fx-background-color: white;
+    -fx-text-fill: #7A1F2B;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 9px 16px;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: #7A1F2B;
+    -fx-cursor: hand;
+}
+
+.category-button:hover {
+    -fx-background-color: #7A1F2B;
+    -fx-text-fill: white;
+}

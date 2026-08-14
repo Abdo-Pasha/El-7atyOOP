@@ -2,11 +2,18 @@ package Order;
 
 public class Invoice {
     static int invoiceId;
+
     private Order order;
     private double taxRate;
     private double serviceChargeRate;
     private PaymentStatus paymentStatus;
     private PaymentMethod paymentMethod;
+
+    public Invoice(Order order) {
+        this.order = order;
+        this.paymentStatus = PaymentStatus.UNPAID;
+    }
+
 
 
     public double getTaxRate() {
@@ -42,4 +49,5 @@ public class Invoice {
         this.paymentStatus = PaymentStatus.PAID;
         order.setStatus(OrderStatus.PAID);
     }
+
 }
