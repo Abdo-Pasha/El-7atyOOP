@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.FlowPane?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.MenuController"
+            stylesheets="@style.css"
+            style="-fx-background-color: #F8F5F0;">
+
+    <!-- ================= HEADER ================= -->
+
+    <top>
+
+        <VBox spacing="5"
+              style="-fx-padding: 20 30 15 30;
+                     -fx-background-color: #7A1F2B;">
+
+            <Label text="EL7ATY"
+                   style="-fx-text-fill: white;
+                          -fx-font-size: 30px;
+                          -fx-font-weight: bold;"/>
+
+            <Label text="Restaurant &amp; Grill"
+                   style="-fx-text-fill: #F5D6A6;
+                          -fx-font-size: 14px;"/>
+
+        </VBox>
+
+    </top>
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+
+    <center>
+
+        <VBox spacing="15"
+              style="-fx-padding: 20 25 20 25;">
+
+            <!-- Categories -->
+
+            <VBox spacing="10">
+
+                <Label text="Categories"
+                       style="-fx-font-size: 20px;
+                              -fx-font-weight: bold;
+                              -fx-text-fill: #333333;"/>
+
+                <HBox spacing="10">
+
+                    <Button text="All"
+                            onAction="#showAll"
+                            styleClass="category-button"/>
+
+                    <Button text="Main Course"
+                            onAction="#showMainCourse"
+                            styleClass="category-button"/>
+
+                    <Button text="Pizza"
+                            onAction="#showPizza"
+                            styleClass="category-button"/>
+
+                    <Button text="Sides"
+                            onAction="#showSides"
+                            styleClass="category-button"/>
+
+                    <Button text="Drinks"
+                            onAction="#showDrinks"
+                            styleClass="category-button"/>
+
+                    <Button text="Desserts"
+                            onAction="#showDesserts"
+                            styleClass="category-button"/>
+
+                </HBox>
+
+            </VBox>
+
+
+            <Separator/>
+
+
+            <!-- Menu + Order -->
+
+            <HBox spacing="20"
+                  VBox.vgrow="ALWAYS">
+
+                <!-- ================= MENU ================= -->
+
+                <VBox spacing="10"
+                      HBox.hgrow="ALWAYS">
+
+                    <Label text="Menu"
+                           style="-fx-font-size: 22px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: #333333;"/>
+
+                    <ScrollPane fitToWidth="true"
+                                VBox.vgrow="ALWAYS"
+                                style="-fx-background-color: transparent;">
+
+                        <content>
+
+                            <FlowPane fx:id="menuContainer"
+                                hgap="15"
+                                vgap="15"
+                                prefWrapLength="580"
+                                style="-fx-padding: 5;"/>
+                        </content>
+
+                    </ScrollPane>
+
+                </VBox>
+
+
+                <!-- ================= ORDER ================= -->
+
+                <VBox prefWidth="330"
+                      spacing="15"
+                      style="-fx-padding: 20;
+                             -fx-background-color: white;
+                             -fx-background-radius: 15;
+                             -fx-border-radius: 15;
+                             -fx-border-color: #E0DDD8;">
+
+                    <Label text="Your Order"
+                           style="-fx-font-size: 22px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: #333333;"/>
+
+                    <ScrollPane fitToWidth="true"
+                                VBox.vgrow="ALWAYS"
+                                style="-fx-background-color: transparent;">
+
+                        <content>
+
+                            <VBox fx:id="orderContainer"
+                                  spacing="12"/>
+
+                        </content>
+
+                    </ScrollPane>
+
+
+                    <Separator/>
+
+
+                    <Label fx:id="subtotalLabel"
+                           text="Subtotal: 0.00 EGP"
+                           style="-fx-font-size: 17px;
+                                  -fx-font-weight: bold;"/>
+
+
+                    <Button fx:id="checkoutButton"
+                            text="CHECKOUT"
+                            onAction="#openCheckout"
+                            maxWidth="Infinity"
+                            style="-fx-background-color: #7A1F2B;
+                                   -fx-text-fill: white;
+                                   -fx-font-size: 16px;
+                                   -fx-font-weight: bold;
+                                   -fx-padding: 12;
+                                   -fx-background-radius: 8;"/>
+
+                </VBox>
+
+            </HBox>
+
+        </VBox>
+
+    </center>
+
+</BorderPane>
