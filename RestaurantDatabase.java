@@ -1,4 +1,3 @@
-import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -42,6 +41,7 @@ public class RestaurantDatabase {
         return null;
     }
 
+    // NOW THIS WILL USE YOUR CUSTOM CLASS
     public static MenuItem findMenuItemByName(String name) {
         for (MenuItem item : menuItems) {
             if (item.getName().equalsIgnoreCase(name)) return item;

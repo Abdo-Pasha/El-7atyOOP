@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="AdminController"
+            style="-fx-background-color: #F8F5F0;">
+
+    <!-- HEADER -->
+    <top>
+        <VBox spacing="5" style="-fx-padding: 20 30 15 30; -fx-background-color: #7A1F2B;">
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <VBox>
+                    <Label text="EL7ATY" style="-fx-text-fill: white; -fx-font-size: 30px; -fx-font-weight: bold;"/>
+                    <Label text="Restaurant &amp; Grill | Admin Dashboard" style="-fx-text-fill: #F5D6A6; -fx-font-size: 14px;"/>
+                </VBox>
+                <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+                    <Button text="Logout" style="-fx-background-color: #F5D6A6; -fx-text-fill: #7A1F2B; -fx-font-weight: bold;"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <VBox spacing="15" style="-fx-padding: 20 25 20 25;">
+
+            <VBox spacing="10">
+                <Label text="Management Categories" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+                <HBox spacing="10">
+                    <Button text="Manage Tables" onAction="#handleManageTables" style="-fx-background-color: white; -fx-border-color: #E0DDD8; -fx-border-radius: 5; -fx-padding: 8 15;"/>
+                    <Button text="Manage Menu Items" onAction="#handleManageMenu" style="-fx-background-color: white; -fx-border-color: #E0DDD8; -fx-border-radius: 5; -fx-padding: 8 15;"/>
+                    <Button text="Manage Categories" onAction="#handleManageCategories" style="-fx-background-color: white; -fx-border-color: #E0DDD8; -fx-border-radius: 5; -fx-padding: 8 15;"/>
+                </HBox>
+            </VBox>
+
+            <Separator/>
+
+            <Label fx:id="currentSectionLabel" text="Currently Viewing: Tables" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+
+            <!-- Raw TableView to allow dynamic column swapping -->
+            <TableView fx:id="adminDataTableView" VBox.vgrow="ALWAYS" style="-fx-background-color: white;"/>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT">
+                <Button fx:id="addButton" text="Add New Table" onAction="#handleAddAction" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;"/>
+                <Button fx:id="deleteButton" text="Delete Selected Table" onAction="#handleDeleteAction" style="-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;"/>
+            </HBox>
+
+        </VBox>
+    </center>
+</BorderPane>

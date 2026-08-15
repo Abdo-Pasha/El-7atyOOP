@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="WaiterController"
+            style="-fx-background-color: #F8F5F0;">
+
+    <top>
+        <VBox spacing="5" style="-fx-padding: 20 30 15 30; -fx-background-color: #7A1F2B;">
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <VBox>
+                    <Label text="EL7ATY" style="-fx-text-fill: white; -fx-font-size: 30px; -fx-font-weight: bold;"/>
+                    <Label text="Restaurant &amp; Grill | Waiter Terminal" style="-fx-text-fill: #F5D6A6; -fx-font-size: 14px;"/>
+                </VBox>
+                <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+                    <Button text="Logout" style="-fx-background-color: #F5D6A6; -fx-text-fill: #7A1F2B; -fx-font-weight: bold;"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <HBox spacing="20" style="-fx-padding: 20 25 20 25;">
+
+            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="My Assigned Tables" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+                    <Button text="Refresh View" onAction="#refreshTableView" style="-fx-background-color: white; -fx-border-color: #ccc;"/>
+                </HBox>
+
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                    <content>
+                        <FlowPane fx:id="tablesContainer" hgap="15" vgap="15" style="-fx-padding: 5;"/>
+                    </content>
+                </ScrollPane>
+            </VBox>
+
+            <VBox prefWidth="350" spacing="15"
+                  style="-fx-padding: 20; -fx-background-color: white; -fx-background-radius: 15; -fx-border-radius: 15; -fx-border-color: #E0DDD8;">
+
+                <Label fx:id="selectedTableLabel" text="Select a Table" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+
+                <VBox spacing="8" style="-fx-background-color: #F8F5F0; -fx-padding: 10; -fx-background-radius: 5;">
+                    <Label text="Manage Seating" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="10">
+                        <Button text="Seat Guests" onAction="#handleSeatGuests" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Button text="Clear Table" onAction="#handleClearTable" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
+
+                <Separator/>
+
+                <VBox spacing="10" VBox.vgrow="ALWAYS">
+                    <Label text="Current Order" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+                    <HBox spacing="10">
+                        <ComboBox fx:id="menuItemComboBox" promptText="Select Menu Item" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button text="Add" onAction="#handleAddItem" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                    </HBox>
+
+                    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: #F8F5F0; -fx-padding: 10; -fx-background-radius: 5;">
+                        <content>
+                            <VBox fx:id="activeOrderItemsContainer" spacing="8"/>
+                        </content>
+                    </ScrollPane>
+
+                    <Label fx:id="orderTotalLabel" text="Total: 0.00 EGP" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #7A1F2B;"/>
+                </VBox>
+
+                <Separator/>
+
+                <VBox spacing="10">
+                    <Label text="Update Order Status" style="-fx-font-weight: bold;"/>
+                    <ComboBox fx:id="statusComboBox" promptText="Select Status (e.g. SERVED)" maxWidth="Infinity"/>
+                    <Button text="Update Status" onAction="#handleUpdateStatus" maxWidth="Infinity" style="-fx-background-color: #333; -fx-text-fill: white;"/>
+                </VBox>
+
+                <Button text="GENERATE INVOICE &amp; CHECKOUT" onAction="#handleCheckout" maxWidth="Infinity"
+                        style="-fx-background-color: #7A1F2B; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12; -fx-background-radius: 8;"/>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>
