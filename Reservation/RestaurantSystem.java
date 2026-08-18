@@ -16,6 +16,10 @@ public class RestaurantSystem {
     public static Table[] tables = new Table[15];
     public static ArrayList<Reservation> reservations = new ArrayList<>();
 
+    public static void syncTables() {
+        tables = RestaurantDatabase.tables.toArray(new Table[0]);
+    }
+    
     public static final LocalTime OPENING_TIME = LocalTime.of(12, 0);
     public static final LocalTime CLOSING_TIME = LocalTime.of(23, 0);
     private static final int RESERVATION_DURATION_HOURS = 2;
@@ -65,6 +69,7 @@ public class RestaurantSystem {
     // }
 
     public static List<Table> viewAvailableTables(LocalDateTime requestTime, int partySize) {
+        syncTables();
         List<Table> available = new ArrayList<>();
 
         LocalTime reqTime = requestTime.toLocalTime();
