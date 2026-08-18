@@ -77,7 +77,7 @@ public class RestaurantDatabase {
         MenuItem soda = new MenuItem(3, "Soda", 50.0, "Canned soda", beverages, true);
         MenuItem freshJuice = new MenuItem(4, "Fresh Juice", 80.0, "Fresh orange juice", beverages, true);
         MenuItem chickenMeal = new MenuItem(5, "Chicken Meal", 250.0, "Grilled chicken served with fries", mainCourse, true);
-        MenuItem beefBurger = new MenuItem(6, "Beef Burger", 200.0, "Beef burger served with fries", mainCourse, true);
+        MenuItem Kofta = new MenuItem(6, "Kofta", 200.0, "Kofta served with fries", mainCourse, true);
         MenuItem cola = new MenuItem(7, "Cola", 45.0, "Cold soft drink", beverages, true);
         MenuItem specialMeal = new MenuItem(8, "Special Meal", 300.0, "Special restaurant meal", mainCourse, false);
         MenuItem cake = new MenuItem(9, "Cake", 120.0, "Chocolate cake slice", desserts, true);
@@ -87,7 +87,7 @@ public class RestaurantDatabase {
         menuItems.add(soda);
         menuItems.add(freshJuice);
         menuItems.add(chickenMeal);
-        menuItems.add(beefBurger);
+        menuItems.add(Kofta);
         menuItems.add(cola);
         menuItems.add(specialMeal);
         menuItems.add(cake);
@@ -95,9 +95,9 @@ public class RestaurantDatabase {
         MENU_ITEM_IMAGES.put("Mixed Grill", "mixed-grill.jpg");
         MENU_ITEM_IMAGES.put("Shish Tawook", "shish-tawook.jpg");
         MENU_ITEM_IMAGES.put("Soda", "soda.jpg");
-        MENU_ITEM_IMAGES.put("Fresh Juice", "fresh-juice.jpg");
+        MENU_ITEM_IMAGES.put("Fresh Juice", "fresh-juice.png");
         MENU_ITEM_IMAGES.put("Chicken Meal", "chicken-meal.jpg");
-        MENU_ITEM_IMAGES.put("Beef Burger", "beef-burger.jpg");
+        MENU_ITEM_IMAGES.put("Kofta", "kofta.jpg");
         MENU_ITEM_IMAGES.put("Cola", "cola.jpg");
         MENU_ITEM_IMAGES.put("Special Meal", "special-meal.jpg");
         MENU_ITEM_IMAGES.put("Cake", "cake.jpg");
