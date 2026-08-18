@@ -14,6 +14,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -27,6 +28,7 @@ import Order.Invoice;
 import Order.MenuCategory;
 import Order.MenuItem;
 import Order.Order;
+import Order.OrderItem;
 import Staff.RestaurantDatabase;
 import Table.Table;
 import Table.TableStatus;
@@ -43,7 +45,7 @@ public class WaiterController {
 
     private Table currentlySelectedTable = null;
 
-    private Map<Integer, List<String>> tableOrders = new HashMap<>();
+    private Map<Integer, Order> tableOrders = new HashMap<>();
     private Map<Integer, Double> tableTotals = new HashMap<>();
 
     @FXML
@@ -110,7 +112,7 @@ public class WaiterController {
         this.currentlySelectedTable = table;
         selectedTableLabel.setText("Table " + table.getTableNumber() + " Selected");
 
-        tableOrders.putIfAbsent(table.getTableNumber(), new ArrayList<>());
+        tableOrders.putIfAbsent(table.getTableNumber(), new Order());
         tableTotals.putIfAbsent(table.getTableNumber(), 0.0);
 
         refreshOrderView();
@@ -127,12 +129,29 @@ public class WaiterController {
         String selection = menuItemComboBox.getValue();
         if (selection != null) {
             int tableId = currentlySelectedTable.getTableNumber();
+            String itemName = selection.split(" - ")[0];
+            MenuItem menuItem = RestaurantDatabase.findMenuItemByName(itemName);
 
-            String[] parts = selection.split(" - ");
-            double price = Double.parseDouble(parts[1].replace(" EGP", ""));
+            if (menuItem == null) {
+                showAlert(Alert.AlertType.ERROR, "Menu Item Not Found", "The selected item could not be found.");
+                return;
+            }
 
-            tableOrders.get(tableId).add("• " + selection);
-            tableTotals.put(tableId, tableTotals.get(tableId) + price);
+            Order order = tableOrders.computeIfAbsent(tableId, id -> new Order());
+
+            for (OrderItem orderItem : order.getItems()) {
+                if (orderItem.getMenuItem().getName().equalsIgnoreCase(itemName)) {
+                    orderItem.increaseQuantity();
+                    if (currentlySelectedTable.getStatus() == TableStatus.AVAILABLE) {
+                        currentlySelectedTable.setStatus(TableStatus.OCCUPIED);
+                        refreshTableView();
+                    }
+                    refreshOrderView();
+                    return;
+                }
+            }
+
+            order.addItem(menuItem, 1, "");
 
             if (currentlySelectedTable.getStatus() == TableStatus.AVAILABLE) {
                 currentlySelectedTable.setStatus(TableStatus.OCCUPIED);
@@ -148,17 +167,66 @@ public class WaiterController {
 
         if (currentlySelectedTable != null) {
             int tableId = currentlySelectedTable.getTableNumber();
-            List<String> items = tableOrders.get(tableId);
+            Order order = tableOrders.get(tableId);
 
-            if (items != null) {
-                for (String itemStr : items) {
-                    Label lbl = new Label(itemStr);
-                    lbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #333333;");
-                    activeOrderItemsContainer.getChildren().add(lbl);
+            if (order != null) {
+                for (OrderItem orderItem : order.getItems()) {
+                    activeOrderItemsContainer.getChildren().add(createOrderItemCard(orderItem));
                 }
+                tableTotals.put(tableId, order.calculateSubtotal());
+                orderTotalLabel.setText("Total: " + String.format("%.2f", tableTotals.get(tableId)) + " EGP");
+            } else {
+                tableTotals.put(tableId, 0.0);
+                orderTotalLabel.setText("Total: 0.00 EGP");
             }
-            orderTotalLabel.setText("Total: " + String.format("%.2f", tableTotals.get(tableId)) + " EGP");
         }
+    }
+
+    private VBox createOrderItemCard(OrderItem orderItem) {
+        VBox card = new VBox(8);
+        card.setStyle("-fx-background-color: #F8F5F0; -fx-padding: 10; -fx-background-radius: 8;");
+
+        Label nameLabel = new Label(orderItem.getMenuItem().getName());
+        nameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #333333;");
+
+        Label priceLabel = new Label(String.format("%.2f EGP", orderItem.getMenuItem().getPrice()));
+        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555555;");
+
+        Label quantityLabel = new Label(String.valueOf(orderItem.getQuantity()));
+        quantityLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #7A1F2B;");
+
+        Button minusButton = new Button("-");
+        Button plusButton = new Button("+");
+        Button removeButton = new Button("Remove");
+
+        Label totalLabel = new Label(String.format("Total: %.2f EGP", orderItem.getTotal()));
+        totalLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #333333;");
+
+        HBox quantityBox = new HBox(10, minusButton, quantityLabel, plusButton);
+        quantityBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        minusButton.setOnAction(event -> {
+            if (orderItem.getQuantity() > 1) {
+                orderItem.decreaseQuantity();
+                refreshOrderView();
+            }
+        });
+
+        plusButton.setOnAction(event -> {
+            orderItem.increaseQuantity();
+            refreshOrderView();
+        });
+
+        removeButton.setOnAction(event -> {
+            Order currentOrder = tableOrders.get(currentlySelectedTable.getTableNumber());
+            if (currentOrder != null) {
+                currentOrder.getItems().remove(orderItem);
+                refreshOrderView();
+            }
+        });
+
+        card.getChildren().addAll(nameLabel, priceLabel, quantityBox, totalLabel, removeButton);
+        return card;
     }
 
     @FXML
@@ -195,9 +263,10 @@ public class WaiterController {
     @FXML
     public void handleCheckout(ActionEvent event) {
         if (currentlySelectedTable != null) {
-            double total = tableTotals.getOrDefault(currentlySelectedTable.getTableNumber(), 0.0);
+            int tableId = currentlySelectedTable.getTableNumber();
+            Order order = tableOrders.getOrDefault(tableId, new Order());
+            double total = order.calculateSubtotal();
 
-            Order order = new Order();
             RestaurantDatabase.invoices.add(new Invoice(order));
 
             handleClearTable(null);
