@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.ReservationController"
+            prefWidth="1000"
+            prefHeight="700"
+            style="-fx-background-color: #F8F5F0;">
+
+    <!-- HEADER -->
+
+    <top>
+        <VBox spacing="10"
+              style="-fx-padding: 20;
+                     -fx-background-color: #7A1F2B;">
+
+            <Label text="Reserve a Table"
+                   style="-fx-font-size: 28px;
+                          -fx-font-weight: bold;
+                          -fx-text-fill: white;"/>
+
+            <Label text="Choose your preferred date, time, location and table"
+                   style="-fx-font-size: 14px;
+                          -fx-text-fill: white;"/>
+
+			<Button text="Back to Dashboard" onAction="#backToDashboard" prefWidth="180" prefHeight="40"/>
+
+        </VBox>
+    </top>
+
+
+    <!-- FILTERS -->
+
+    <left>
+        <VBox spacing="15"
+              prefWidth="230"
+              style="-fx-padding: 25;
+                     -fx-background-color: white;">
+
+            <Label text="Reservation Details"
+                   style="-fx-font-size: 20px;
+                          -fx-font-weight: bold;"/>
+
+            <Separator/>
+
+            <Label text="Date"/>
+
+            <DatePicker fx:id="datePicker"
+                        maxWidth="Infinity"/>
+
+
+            <Label text="Time"/>
+
+            <ComboBox fx:id="timeBox"
+                      promptText="Select time"
+                      maxWidth="Infinity"/>
+
+
+            <Label text="Party Size"/>
+
+            <Spinner fx:id="partySpinner"
+                     editable="true"
+                     maxWidth="Infinity"/>
+
+
+            <Label text="Location"/>
+
+            <ComboBox fx:id="locationBox"
+                      promptText="Any location"
+                      maxWidth="Infinity"/>
+
+
+            <Button text="FIND AVAILABLE TABLES"
+                    onAction="#findTables"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: #7A1F2B;
+                           -fx-text-fill: white;
+                           -fx-font-weight: bold;
+                           -fx-padding: 10;"/>
+
+
+            <Label fx:id="messageLabel"
+                   wrapText="true"/>
+
+        </VBox>
+    </left>
+
+
+    <!-- TABLES -->
+
+    <center>
+        <VBox spacing="15"
+              style="-fx-padding: 25;">
+
+            <Label text="Available Tables"
+                   style="-fx-font-size: 24px;
+                          -fx-font-weight: bold;"/>
+
+            <ScrollPane fitToWidth="true"
+                        fitToHeight="true"
+                        VBox.vgrow="ALWAYS">
+
+                <content>
+
+                    <FlowPane fx:id="tableContainer"
+                              hgap="15"
+                              vgap="15"
+                              prefWrapLength="650"
+                              style="-fx-padding: 5;"/>
+
+                </content>
+
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>
