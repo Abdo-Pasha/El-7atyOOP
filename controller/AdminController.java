@@ -10,22 +10,25 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.geometry.Insets;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,9 +36,11 @@ import Customer.Customer;
 import Customer.DietaryPreferences;
 import Order.MenuCategory;
 import Order.MenuItem;
+import Staff.Admin;
 import Staff.RestaurantDatabase;
 import Staff.Role;
 import Staff.Staff;
+import Staff.Waiter;
 import Staff.WorkingHours;
 import Table.Table;
 import Table.TableStatus;
@@ -135,10 +140,14 @@ public class AdminController {
         adminDataTableView.getColumns().clear();
 
         TableColumn<Object, String> nameCol = new TableColumn<>("Category Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
-        nameCol.setPrefWidth(400);
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setPrefWidth(250);
 
-        adminDataTableView.getColumns().add(nameCol);
+        TableColumn<Object, String> descriptionCol = new TableColumn<>("Description");
+        descriptionCol.setCellValueFactory(new PropertyValueFactory<>("description"));
+        descriptionCol.setPrefWidth(400);
+
+        adminDataTableView.getColumns().addAll(nameCol, descriptionCol);
         adminDataTableView.setItems(FXCollections.observableArrayList(RestaurantDatabase.categories));
     }
 
@@ -208,48 +217,34 @@ public class AdminController {
     public void handleAddAction(ActionEvent event) {
         switch (currentMode) {
             case "TABLES":
-                RestaurantDatabase.tables.add(new Table(RestaurantDatabase.tables.size() + 1, 4, TableType.INDOOR));
-                handleManageTables(null);
-                showAlert(Alert.AlertType.INFORMATION, "Added", "Dummy table added.");
+                showTableForm(null).ifPresent(table -> {
+                    RestaurantDatabase.tables.add(table);
+                    handleManageTables(null);
+                });
                 break;
             case "MENU":
-                MenuCategory defaultCat = RestaurantDatabase.categories.isEmpty()
-                        ? new MenuCategory(RestaurantDatabase.categories.size() + 1, "General", "General menu items")
-                        : RestaurantDatabase.categories.get(0);
-                RestaurantDatabase.menuItems.add(new MenuItem(RestaurantDatabase.menuItems.size() + 1, "New Item", 99.99, "New Description", defaultCat, true));
-                handleManageMenu(null);
-                showAlert(Alert.AlertType.INFORMATION, "Added", "Dummy menu item added.");
+                showMenuItemForm(null).ifPresent(item -> {
+                    RestaurantDatabase.menuItems.add(item);
+                    handleManageMenu(null);
+                });
                 break;
             case "CATEGORIES":
-                RestaurantDatabase.categories.add(new MenuCategory(RestaurantDatabase.categories.size() + 1, "New Category", "User created category"));
-                handleManageCategories(null);
-                showAlert(Alert.AlertType.INFORMATION, "Added", "Dummy category added.");
+                showCategoryForm(null).ifPresent(category -> {
+                    RestaurantDatabase.categories.add(category);
+                    handleManageCategories(null);
+                });
                 break;
             case "STAFF":
-                showAlert(Alert.AlertType.INFORMATION, "Staff Form", "Use the staff creation form below to add a new staff account.");
-                handleManageStaff(null);
+                showStaffForm(null).ifPresent(staff -> {
+                    RestaurantDatabase.staff.add(staff);
+                    handleManageStaff(null);
+                });
                 break;
             case "CUSTOMERS":
-                TextInputDialog newCustomerDialog = new TextInputDialog("NewCustomer");
-                newCustomerDialog.setTitle("Add Customer");
-                newCustomerDialog.setHeaderText("Create a new customer");
-                newCustomerDialog.setContentText("Username:");
-                Optional<String> usernameOpt = newCustomerDialog.showAndWait();
-                if (usernameOpt.isPresent()) {
-                    String username = usernameOpt.get().trim();
-                    if (username.isEmpty() || RestaurantDatabase.findCustomerByUsername(username) != null) {
-                        showAlert(Alert.AlertType.WARNING, "Invalid Username", "Please enter a unique customer username.");
-                        return;
-                    }
-                    try {
-                        Customer customer = new Customer(username, "Customer123", LocalDate.of(2000, 1, 1), "01000000000", DietaryPreferences.NONE);
-                        RestaurantDatabase.addCustomer(customer);
-                        handleManageCustomers(null);
-                        showAlert(Alert.AlertType.INFORMATION, "Added", "Customer added successfully.");
-                    } catch (IllegalArgumentException ex) {
-                        showAlert(Alert.AlertType.ERROR, "Error", ex.getMessage());
-                    }
-                }
+                showCustomerForm(null).ifPresent(customer -> {
+                    RestaurantDatabase.customers.add(customer);
+                    handleManageCustomers(null);
+                });
                 break;
             default:
                 break;
@@ -271,7 +266,14 @@ public class AdminController {
             RestaurantDatabase.menuItems.remove((MenuItem) selected);
             handleManageMenu(null);
         } else if (currentMode.equals("CATEGORIES")) {
-            RestaurantDatabase.categories.remove((MenuCategory) selected);
+            MenuCategory category = (MenuCategory) selected;
+            boolean inUse = RestaurantDatabase.menuItems.stream()
+                    .anyMatch(item -> item.getCategory() == category);
+            if (inUse) {
+                showAlert(Alert.AlertType.WARNING, "Category In Use", "Move or delete its menu items before deleting this category.");
+                return;
+            }
+            RestaurantDatabase.categories.remove(category);
             handleManageCategories(null);
         } else if (currentMode.equals("STAFF")) {
             RestaurantDatabase.staff.remove(selected);
@@ -293,84 +295,56 @@ public class AdminController {
 
         if (currentMode.equals("TABLES")) {
             Table table = (Table) selected;
-            ChoiceDialog<TableStatus> statusDialog = new ChoiceDialog<>(table.getStatus(), List.of(TableStatus.values()));
-            statusDialog.setTitle("Update Table Status");
-            statusDialog.setHeaderText("Change status for Table " + table.getTableNumber());
-            statusDialog.setContentText("Status:");
-            statusDialog.showAndWait().ifPresent(table::setStatus);
-            handleManageTables(null);
+            showTableForm(table).ifPresent(updated -> {
+                table.setTableNumber(updated.getTableNumber());
+                table.setCapacity(updated.getCapacity());
+                table.setLocation(updated.getLocation());
+                table.setStatus(updated.getStatus());
+                handleManageTables(null);
+            });
             return;
         }
 
         if (currentMode.equals("MENU")) {
             MenuItem item = (MenuItem) selected;
-            TextInputDialog priceDialog = new TextInputDialog(String.valueOf(item.getPrice()));
-            priceDialog.setTitle("Update Menu Item");
-            priceDialog.setHeaderText("Edit price for " + item.getName());
-            priceDialog.setContentText("Price (EGP):");
-            Optional<String> priceResult = priceDialog.showAndWait();
-            if (priceResult.isPresent()) {
-                try {
-                    double newPrice = Double.parseDouble(priceResult.get());
-                    item.setPrice(newPrice);
-                } catch (NumberFormatException e) {
-                    showAlert(Alert.AlertType.ERROR, "Invalid Price", "Please enter a valid number.");
-                    return;
-                }
-            }
-            handleManageMenu(null);
+            showMenuItemForm(item).ifPresent(updated -> {
+                item.setName(updated.getName());
+                item.setPrice(updated.getPrice());
+                item.setDescription(updated.getDescription());
+                item.setCategory(updated.getCategory());
+                item.setAvailable(updated.isAvailable());
+                handleManageMenu(null);
+            });
             return;
         }
 
         if (currentMode.equals("CATEGORIES")) {
             MenuCategory category = (MenuCategory) selected;
-            TextInputDialog nameDialog = new TextInputDialog(category.getName());
-            nameDialog.setTitle("Update Category");
-            nameDialog.setHeaderText("Edit category name");
-            nameDialog.setContentText("Category name:");
-            Optional<String> nameResult = nameDialog.showAndWait();
-            if (nameResult.isPresent() && !nameResult.get().trim().isEmpty()) {
-                category.setName(nameResult.get().trim());
-            }
-            handleManageCategories(null);
+            showCategoryForm(category).ifPresent(updated -> {
+                category.setName(updated.getName());
+                category.setDescription(updated.getDescription());
+                handleManageCategories(null);
+            });
             return;
         }
 
         if (currentMode.equals("STAFF")) {
             Staff staff = (Staff) selected;
-            TextInputDialog hoursDialog = new TextInputDialog(staff.getWorkingHours() == null ? "09:00 AM - 05:00 PM" : staff.getWorkingHours().toString());
-            hoursDialog.setTitle("Update Working Hours");
-            hoursDialog.setHeaderText("Edit working hours for " + staff.getUsername());
-            hoursDialog.setContentText("Format: 09:00 AM - 05:00 PM");
-            Optional<String> hoursResult = hoursDialog.showAndWait();
-            if (hoursResult.isPresent()) {
-                String value = hoursResult.get().trim();
-                String[] parts = value.split("-");
-                if (parts.length == 2) {
-                    staff.setWorkingHours(new WorkingHours(parts[0].trim(), parts[1].trim()));
-                }
-            }
-            handleManageStaff(null);
+            showStaffForm(staff).ifPresent(updated -> {
+                int index = RestaurantDatabase.staff.indexOf(staff);
+                RestaurantDatabase.staff.set(index, updated);
+                handleManageStaff(null);
+            });
             return;
         }
 
         if (currentMode.equals("CUSTOMERS")) {
             Customer customer = (Customer) selected;
-            TextInputDialog phoneDialog = new TextInputDialog(customer.getPhoneNumber());
-            phoneDialog.setTitle("Update Customer");
-            phoneDialog.setHeaderText("Edit phone number for " + customer.getUsername());
-            phoneDialog.setContentText("Phone:");
-            Optional<String> phoneResult = phoneDialog.showAndWait();
-            if (phoneResult.isPresent()) {
-                String phone = phoneResult.get().trim();
-                if (Customer.validatePhoneNumber(phone)) {
-                    customer.setPhoneNumber(phone);
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Invalid Phone", "Phone number must be a valid Egyptian number.");
-                    return;
-                }
-            }
-            handleManageCustomers(null);
+            showCustomerForm(customer).ifPresent(updated -> {
+                int index = RestaurantDatabase.customers.indexOf(customer);
+                RestaurantDatabase.customers.set(index, updated);
+                handleManageCustomers(null);
+            });
             return;
         }
 
@@ -412,6 +386,209 @@ public class AdminController {
         staffEndTimeField.clear();
 
         showAlert(Alert.AlertType.INFORMATION, "Account Created", "Staff account created successfully.");
+    }
+
+    private Optional<List<String>> showForm(String title, String[] labels, String[] values, String[] placeholders) {
+        Dialog<List<String>> dialog = new Dialog<>();
+        dialog.setTitle(title);
+        dialog.setHeaderText("Enter all required information");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(10));
+
+        List<TextField> fields = new ArrayList<>();
+        for (int i = 0; i < labels.length; i++) {
+            Label label = new Label(labels[i]);
+            TextField field = new TextField(values[i]);
+            field.setPromptText(placeholders[i]);
+            field.setPrefWidth(280);
+            fields.add(field);
+            grid.add(label, 0, i);
+            grid.add(field, 1, i);
+        }
+
+        ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
+        dialog.setResultConverter(button -> {
+            if (button != saveButton) return null;
+            List<String> result = new ArrayList<>();
+            for (TextField field : fields) result.add(field.getText().trim());
+            return result;
+        });
+        return dialog.showAndWait();
+    }
+
+    private Optional<Table> showTableForm(Table existing) {
+        String[] labels = {"Table number", "Capacity", "Location (INDOOR/OUTDOOR/VIP/PRIVATE_ROOM)", "Status (AVAILABLE/RESERVED/OCCUPIED)"};
+        String[] values = existing == null
+                ? new String[]{String.valueOf(nextTableNumber()), "4", "INDOOR", "AVAILABLE"}
+                : new String[]{String.valueOf(existing.getTableNumber()), String.valueOf(existing.getCapacity()),
+                existing.getLocation().name(), existing.getStatus().name()};
+        String[] placeholders = {"Positive whole number", "Positive whole number", "INDOOR", "AVAILABLE"};
+        Optional<List<String>> result = showForm(existing == null ? "Add Table" : "Update Table", labels, values, placeholders);
+        if (!result.isPresent()) return Optional.empty();
+
+        try {
+            int number = Integer.parseInt(result.get().get(0));
+            int capacity = Integer.parseInt(result.get().get(1));
+            TableType location = TableType.valueOf(result.get().get(2).toUpperCase());
+            TableStatus status = TableStatus.valueOf(result.get().get(3).toUpperCase());
+            if (number <= 0 || capacity <= 0) throw new IllegalArgumentException();
+            for (Table table : RestaurantDatabase.tables) {
+                if (table != existing && table.getTableNumber() == number) {
+                    showAlert(Alert.AlertType.WARNING, "Duplicate Table", "Table number already exists.");
+                    return Optional.empty();
+                }
+            }
+            Table table = new Table(number, capacity, location);
+            table.setStatus(status);
+            return Optional.of(table);
+        } catch (IllegalArgumentException ex) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Table", "Use positive numbers and valid location/status values.");
+            return Optional.empty();
+        }
+    }
+
+    private Optional<MenuItem> showMenuItemForm(MenuItem existing) {
+        String[] labels = {"Name", "Price (EGP)", "Description", "Category", "Available (true/false)"};
+        String[] values = existing == null
+                ? new String[]{"", "", "", RestaurantDatabase.categories.isEmpty() ? "" : RestaurantDatabase.categories.get(0).getName(), "true"}
+                : new String[]{existing.getName(), String.valueOf(existing.getPrice()), existing.getDescription(),
+                existing.getCategory().getName(), String.valueOf(existing.isAvailable())};
+        String[] placeholders = {"Item name", "Non-negative number", "Item description", "Existing category name", "true or false"};
+        Optional<List<String>> result = showForm(existing == null ? "Add Menu Item" : "Update Menu Item", labels, values, placeholders);
+        if (!result.isPresent()) return Optional.empty();
+        if (RestaurantDatabase.categories.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "No Categories", "Create a category before adding a menu item.");
+            return Optional.empty();
+        }
+
+        try {
+            String name = result.get().get(0);
+            double price = Double.parseDouble(result.get().get(1));
+            String availableText = result.get().get(4);
+            if (name.isEmpty() || price < 0 || (!availableText.equalsIgnoreCase("true") && !availableText.equalsIgnoreCase("false"))) {
+                throw new IllegalArgumentException();
+            }
+            boolean duplicate = RestaurantDatabase.menuItems.stream().anyMatch(item -> item != existing
+                    && item.getName().equalsIgnoreCase(name));
+            if (duplicate) {
+                showAlert(Alert.AlertType.WARNING, "Duplicate Menu Item", "A menu item with this name already exists.");
+                return Optional.empty();
+            }
+            MenuCategory category = RestaurantDatabase.categories.stream()
+                    .filter(item -> item.getName().equalsIgnoreCase(result.get().get(3)))
+                    .findFirst().orElseThrow(IllegalArgumentException::new);
+            return Optional.of(new MenuItem(existing == null ? nextMenuItemId() : existing.getId(), name, price,
+                    result.get().get(2), category, Boolean.parseBoolean(availableText)));
+        } catch (IllegalArgumentException ex) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Menu Item", "Check the name, price, category, and availability values.");
+            return Optional.empty();
+        }
+    }
+
+    private Optional<MenuCategory> showCategoryForm(MenuCategory existing) {
+        String[] labels = {"Name", "Description"};
+        String[] values = existing == null ? new String[]{"", ""} : new String[]{existing.getName(), existing.getDescription()};
+        String[] placeholders = {"Category name", "Category description"};
+        Optional<List<String>> result = showForm(existing == null ? "Add Category" : "Update Category", labels, values, placeholders);
+        if (!result.isPresent()) return Optional.empty();
+        String name = result.get().get(0);
+        if (name.isEmpty() || RestaurantDatabase.categories.stream().anyMatch(category -> category != existing
+                && category.getName().equalsIgnoreCase(name))) {
+            showAlert(Alert.AlertType.WARNING, "Invalid Category", "Category name is required and must be unique.");
+            return Optional.empty();
+        }
+        return Optional.of(new MenuCategory(existing == null ? nextCategoryId() : existing.getId(), name, result.get().get(1)));
+    }
+
+    private Optional<Staff> showStaffForm(Staff existing) {
+        String[] labels = {"Username", "Password", "Date of birth (YYYY-MM-DD)", "Role (ADMIN/WAITER)", "Start time", "End time"};
+        String[] values = existing == null
+                ? new String[]{"", "", "", "WAITER", "09:00 AM", "05:00 PM"}
+                : new String[]{existing.getUsername(), "", existing.getDateOfBirth().toString(), existing.getRole().name(),
+                existing.getWorkingHours().getStartTime(), existing.getWorkingHours().getEndTime()};
+        String[] placeholders = {"Unique username", existing == null ? "At least 6 characters" : "Leave blank to keep current password",
+                "YYYY-MM-DD", "ADMIN or WAITER", "e.g. 09:00 AM", "e.g. 05:00 PM"};
+        Optional<List<String>> result = showForm(existing == null ? "Add Staff" : "Update Staff", labels, values, placeholders);
+        if (!result.isPresent()) return Optional.empty();
+        try {
+            String username = result.get().get(0);
+            String password = result.get().get(1);
+            LocalDate date = LocalDate.parse(result.get().get(2));
+            Role role = Role.valueOf(result.get().get(3).toUpperCase());
+            if (username.isEmpty() || (existing == null && !Customer.validatePassword(password))
+                    || (existing != null && !password.isEmpty() && !Customer.validatePassword(password))) {
+                throw new IllegalArgumentException();
+            }
+            boolean duplicate = RestaurantDatabase.staff.stream().anyMatch(staff -> staff != existing
+                    && staff.getUsername().equalsIgnoreCase(username));
+            if (duplicate) {
+                showAlert(Alert.AlertType.WARNING, "Duplicate Username", "A staff username already exists.");
+                return Optional.empty();
+            }
+            String finalPassword = password.isEmpty() && existing != null ? existing.getPassword() : password;
+            WorkingHours hours = new WorkingHours(result.get().get(4), result.get().get(5));
+            Staff staff = role == Role.ADMIN ? new Admin(username, finalPassword, date, hours) : new Waiter(username, finalPassword, date, hours);
+            return Optional.of(staff);
+        } catch (IllegalArgumentException ex) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Staff", "Check all fields, including password, date, role, and working hours.");
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Customer> showCustomerForm(Customer existing) {
+        String[] labels = {"Username", "Password", "Date of birth (YYYY-MM-DD)", "Phone", "Dietary preference"};
+        String[] values = existing == null
+                ? new String[]{"", "", "", "", "NONE"}
+                : new String[]{existing.getUsername(), "", existing.getDateOfBirth().toString(), existing.getPhoneNumber(), existing.getDietaryPreferences().name()};
+        String[] placeholders = {"Unique username", existing == null ? "At least 8 chars, letters and numbers" : "Leave blank to keep current password",
+                "YYYY-MM-DD", "Egyptian mobile number", "NONE, VEGETARIAN, VEGAN, GLUTEN_FREE, NUT_ALLERGY"};
+        Optional<List<String>> result = showForm(existing == null ? "Add Customer" : "Update Customer", labels, values, placeholders);
+        if (!result.isPresent()) return Optional.empty();
+        try {
+            String username = result.get().get(0);
+            String password = result.get().get(1);
+            LocalDate date = LocalDate.parse(result.get().get(2));
+            String phone = result.get().get(3);
+            DietaryPreferences diet = DietaryPreferences.valueOf(result.get().get(4).toUpperCase());
+            if (username.isEmpty() || !Customer.validatePhoneNumber(phone)
+                    || (existing == null && !Customer.validatePassword(password))
+                    || (existing != null && !password.isEmpty() && !Customer.validatePassword(password))) {
+                throw new IllegalArgumentException();
+            }
+            boolean duplicate = RestaurantDatabase.customers.stream().anyMatch(customer -> customer != existing
+                    && customer.getUsername().equalsIgnoreCase(username));
+            if (duplicate) {
+                showAlert(Alert.AlertType.WARNING, "Duplicate Username", "A customer username already exists.");
+                return Optional.empty();
+            }
+            String finalPassword = password.isEmpty() && existing != null ? existing.getPassword() : password;
+            Customer customer = new Customer(username, finalPassword, date, phone, diet);
+            if (existing != null) {
+                customer.addBalance(existing.getBalance());
+                customer.addLoyaltyPoints(existing.getLoyaltyPoints());
+            }
+            return Optional.of(customer);
+        } catch (IllegalArgumentException ex) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Customer", "Check username, password, date, phone, and dietary preference.");
+            return Optional.empty();
+        }
+    }
+
+    private int nextTableNumber() {
+        return RestaurantDatabase.tables.stream().mapToInt(Table::getTableNumber).max().orElse(0) + 1;
+    }
+
+    private int nextMenuItemId() {
+        return RestaurantDatabase.menuItems.stream().mapToInt(MenuItem::getId).max().orElse(0) + 1;
+    }
+
+    private int nextCategoryId() {
+        return RestaurantDatabase.categories.stream().mapToInt(MenuCategory::getId).max().orElse(0) + 1;
     }
 
     @FXML
