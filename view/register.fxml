@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.DatePicker?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.RegisterController"
+      alignment="CENTER"
+      spacing="12"
+      prefWidth="450"
+      prefHeight="600"
+      style="-fx-background-color: #F8F5F0;
+             -fx-padding: 35;">
+
+    <Label text="EL7ATY"
+           style="-fx-font-size: 30px;
+                  -fx-font-weight: bold;
+                  -fx-text-fill: #7A1F2B;"/>
+
+    <Label text="Create Account"
+           style="-fx-font-size: 22px;
+                  -fx-font-weight: bold;"/>
+
+    <TextField fx:id="usernameField"
+               promptText="Username"
+               maxWidth="300"/>
+
+    <PasswordField fx:id="passwordField"
+                   promptText="Password"
+                   maxWidth="300"/>
+
+    <DatePicker fx:id="dobPicker"
+            promptText="Date of Birth"
+            maxWidth="300"/>
+
+    <TextField fx:id="phoneField"
+               promptText="Phone Number"
+               maxWidth="300"/>
+
+    <ComboBox fx:id="dietaryBox"
+              promptText="Dietary Preference"
+              maxWidth="300"/>
+
+    <Button text="REGISTER"
+            onAction="#register"
+            maxWidth="300"
+            style="-fx-background-color: #7A1F2B;
+                   -fx-text-fill: white;
+                   -fx-font-weight: bold;
+                   -fx-padding: 10;"/>
+
+    <Button text="Back to Login"
+            onAction="#backToLogin"
+            maxWidth="300"/>
+
+    <Label fx:id="messageLabel"
+           wrapText="true"/>
+
+</VBox>

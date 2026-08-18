@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.LoginController"
+      alignment="CENTER"
+      spacing="15"
+      prefWidth="450"
+      prefHeight="500"
+      style="-fx-background-color: #F8F5F0;
+             -fx-padding: 40;">
+
+    <Label text="EL7ATY"
+           style="-fx-font-size: 32px;
+                  -fx-font-weight: bold;
+                  -fx-text-fill: #7A1F2B;"/>
+
+    <Label text="Login"
+           style="-fx-font-size: 22px;
+                  -fx-font-weight: bold;"/>
+
+    <TextField fx:id="usernameField"
+               promptText="Username"
+               maxWidth="300"/>
+
+    <PasswordField fx:id="passwordField"
+                   promptText="Password"
+                   maxWidth="300"/>
+
+    <Button text="LOGIN"
+            onAction="#login"
+            maxWidth="300"
+            style="-fx-background-color: #7A1F2B;
+                   -fx-text-fill: white;
+                   -fx-font-weight: bold;
+                   -fx-padding: 10;"/>
+
+    <Button text="Create an account"
+            onAction="#openRegister"
+            maxWidth="300"/>
+
+    <Label fx:id="messageLabel"
+           wrapText="true"/>
+
+</VBox>
